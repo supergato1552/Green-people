@@ -2,16 +2,12 @@ import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Camera, 
-  RefreshCw, 
   Sparkles, 
-  CheckCircle2, 
-  AlertTriangle, 
   Grid3X3, 
   Smartphone, 
   Smile, 
   Bot, 
   Sliders, 
-  ShieldCheck,
   RotateCcw
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -25,10 +21,10 @@ interface PhaseTwoProps {
 }
 
 const FILTERS = [
-  { id: 'normal' as FilterType, label: 'Natural', colorClass: 'from-emerald-400 to-green-500', desc: 'Tonos naturales y luminosos' },
+  { id: 'normal' as FilterType, label: 'Natural', colorClass: 'from-[#d97757] to-amber-500', desc: 'Tonos naturales y luminosos' },
   { id: 'bw' as FilterType, label: 'Blanco & Negro', colorClass: 'from-zinc-300 to-zinc-600', desc: 'Elegancia clásica y contraste' },
-  { id: 'cinema-teal' as FilterType, label: 'Película Azul/Verde', colorClass: 'from-cyan-400 to-emerald-600', desc: 'Estética cinematográfica verdosa' },
-  { id: 'vintage-red' as FilterType, label: 'Rojo Cálido', colorClass: 'from-rose-500 to-amber-600', desc: 'Calidez nostálgica y carácter' }
+  { id: 'cinema-teal' as FilterType, label: 'Cálido Claude', colorClass: 'from-[#ea580c] to-[#d97757]', desc: 'Atmósfera cinematográfica cálida' },
+  { id: 'vintage-red' as FilterType, label: 'Vintage Ámbar', colorClass: 'from-amber-500 to-rose-600', desc: 'Calidez nostálgica y carácter' }
 ];
 
 const PHOTO_TIPS = [
@@ -40,7 +36,7 @@ const PHOTO_TIPS = [
   {
     icon: Smartphone,
     title: 'Ángulo y Orientación',
-    text: 'Mantén el teléfono al nivel de los ojos o ligeramente inclinado hacia abajo (10°).'
+    text: 'Mantén el teléfono al nivel de los ojos o con una suave inclinación hacia abajo (10°).'
   },
   {
     icon: Smile,
@@ -68,12 +64,16 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
     passed: boolean;
   } | null>(null);
 
-  // Initialize camera stream
+  // Initialize camera stream with cross-browser Safari/WebKit and Chromium compatibility
   useEffect(() => {
     let currentStream: MediaStream | null = null;
 
     async function initCamera() {
       try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error('Navegador sin soporte de medios directos');
+        }
+
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
             width: { ideal: 1080 },
@@ -85,12 +85,16 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
         currentStream = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          // Required for iOS WebKit inline playback
+          videoRef.current.setAttribute('playsinline', 'true');
+          videoRef.current.setAttribute('webkit-playsinline', 'true');
+          await videoRef.current.play().catch(() => {});
           setStreamActive(true);
         }
       } catch (err: any) {
         console.warn('Webcam not directly available or denied:', err);
         setCameraError(
-          'No se pudo acceder a la cámara en directo (permiso no concedido o entorno sin webcam). ¡Puedes usar el generador de simulación instantáneo!'
+          'No se detectó cámara activa o se denegó el permiso. ¡Puedes usar el generador instantáneo de foto simulada!'
         );
       }
     }
@@ -118,16 +122,13 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
       const ctx = canvas.getContext('2d');
 
       if (ctx) {
-        // Draw image
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Apply filter directly onto canvas data if desired
         photoData = canvas.toDataURL('image/jpeg', 0.9);
       }
     } else {
-      // Fallback synthetic avatar using high quality dicebear realistic style or SVG
-      const seed = encodeURIComponent(data.username || 'green-friend');
-      photoData = `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=0b100d,12281c`;
+      // Fallback synthetic avatar using high quality notionist portrait
+      const seed = encodeURIComponent(data.username || 'claude-friend');
+      photoData = `https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=141210,24140d`;
     }
 
     updateData({ avatarUrl: photoData });
@@ -143,12 +144,11 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
     setTimeout(() => {
       const declaredAge = typeof data.realAge === 'number' ? data.realAge : 22;
       
-      // Calculate realistic neural age detection with small randomized variance (-1 to +2)
       const variance = Math.floor(Math.random() * 3) - 1;
       const detected = Math.max(13, declaredAge + variance);
       const diff = Math.abs(detected - declaredAge);
 
-      const passed = diff <= 5; // Passes if close to real declared age
+      const passed = diff <= 5;
 
       setAiVerdict({
         detectedAge: detected,
@@ -166,12 +166,12 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
 
       setIsAnalyzing(false);
 
-      // Trigger satisfaction confetti
+      // Trigger warm Claude orange confetti
       confetti({
         particleCount: 50,
         spread: 80,
         origin: { y: 0.6 },
-        colors: ['#10b981', '#06b6d4', '#ec4899', '#f59e0b']
+        colors: ['#d97757', '#ea580c', '#fb923c', '#fdba74', '#f59e0b']
       });
     }, 2400);
   };
@@ -201,9 +201,9 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
       case 'bw':
         return 'grayscale(100%) contrast(120%)';
       case 'cinema-teal':
-        return 'contrast(115%) saturate(85%) hue-rotate(165deg) sepia(25%)';
+        return 'contrast(110%) saturate(110%) sepia(20%) hue-rotate(-10deg)';
       case 'vintage-red':
-        return 'sepia(40%) saturate(140%) hue-rotate(-20deg) contrast(110%)';
+        return 'sepia(35%) saturate(135%) hue-rotate(-20deg) contrast(110%)';
       default:
         return 'contrast(105%) brightness(102%)';
     }
@@ -215,24 +215,24 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.4 }}
-      className="space-y-6"
+      className="space-y-5 sm:space-y-6"
     >
       {/* Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
-          <Camera className="w-3.5 h-3.5" />
-          Fase 2: Foto de Perfil & Verificación de Edad
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#291811]/80 border border-[#d97757]/30 text-[#f28b66] text-xs font-semibold uppercase tracking-wider">
+          <Camera className="w-3.5 h-3.5 text-[#d97757]" />
+          Fase 2: Foto de Perfil & Verificación
         </div>
-        <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Captura tu esencia <span className="text-emerald-400">al momento</span>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">
+          Captura tu esencia <span className="text-[#d97757]">al momento</span>
         </h2>
-        <p className="text-sm text-slate-400 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-stone-400 max-w-md mx-auto leading-relaxed">
           En Green People las fotos se toman al instante. Nada de fotos retocadas de hace 5 años.
         </p>
       </div>
 
       {/* VIEWFINDER / CAMERA CONTAINER */}
-      <div className="relative mx-auto max-w-md aspect-square rounded-3xl overflow-hidden border-2 border-emerald-500/40 bg-slate-950 shadow-[0_0_50px_rgba(16,185,129,0.15)]">
+      <div className="relative mx-auto w-full max-w-xs sm:max-w-sm md:max-w-md aspect-square rounded-2xl sm:rounded-3xl overflow-hidden border-2 border-[#d97757]/40 bg-stone-950 shadow-[0_0_50px_rgba(217,119,87,0.22)]">
         <canvas ref={canvasRef} className="hidden" />
 
         {/* 1. Live video feed */}
@@ -247,18 +247,18 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
               className="w-full h-full object-cover transform -scale-x-100 transition-all duration-300"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-slate-950 via-[#0e1d15] to-slate-900">
-              <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mb-3">
-                <Camera className="w-8 h-8 text-emerald-400" />
+            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center bg-gradient-to-br from-[#12100e] via-[#1a1410] to-stone-950">
+              <div className="w-16 h-16 rounded-2xl bg-[#d97757]/15 border border-[#d97757]/35 flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(217,119,87,0.25)]">
+                <Camera className="w-8 h-8 text-[#d97757]" />
               </div>
-              <p className="text-sm font-semibold text-slate-200 mb-1">Cámara en Vivo Preparada</p>
-              <p className="text-xs text-slate-400 max-w-xs mb-4">
-                {cameraError || 'Haz clic para capturar o autorizar tu cámara para tomar la foto al momento.'}
+              <p className="text-sm font-semibold text-stone-200 mb-1">Cámara Lista</p>
+              <p className="text-xs text-stone-400 max-w-xs mb-4 leading-relaxed">
+                {cameraError || 'Toca el botón para capturar tu foto con la cámara o generar una imagen al momento.'}
               </p>
               <button
                 type="button"
                 onClick={capturePhoto}
-                className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-bold text-xs transition"
+                className="px-5 py-2.5 rounded-xl bg-[#d97757] hover:bg-[#ea580c] text-white font-bold text-xs transition shadow-lg shadow-[#d97757]/30 cursor-pointer"
               >
                 Capturar Foto Ahora
               </button>
@@ -277,9 +277,9 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
             <button
               type="button"
               onClick={handleRetake}
-              className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700 text-white text-xs font-medium flex items-center gap-1.5 hover:bg-slate-800 transition"
+              className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-stone-900/80 backdrop-blur-md border border-stone-700 text-white text-xs font-medium flex items-center gap-1.5 hover:bg-stone-800 transition"
             >
-              <RotateCcw className="w-3.5 h-3.5 text-emerald-400" /> Repetir Foto
+              <RotateCcw className="w-3.5 h-3.5 text-[#d97757]" /> Repetir Foto
             </button>
           </div>
         )}
@@ -287,14 +287,14 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
         {/* RULE OF THIRDS GRID OVERLAY */}
         {showRuleOfThirds && !data.avatarUrl && (
           <div className="absolute inset-0 pointer-events-none grid grid-cols-3 grid-rows-3 z-10">
-            <div className="border-r border-b border-emerald-400/20" />
-            <div className="border-r border-b border-emerald-400/20" />
-            <div className="border-b border-emerald-400/20" />
-            <div className="border-r border-b border-emerald-400/20" />
-            <div className="border-r border-b border-emerald-400/20" />
-            <div className="border-b border-emerald-400/20" />
-            <div className="border-r border-emerald-400/20" />
-            <div className="border-r border-emerald-400/20" />
+            <div className="border-r border-b border-[#d97757]/25" />
+            <div className="border-r border-b border-[#d97757]/25" />
+            <div className="border-b border-[#d97757]/25" />
+            <div className="border-r border-b border-[#d97757]/25" />
+            <div className="border-r border-b border-[#d97757]/25" />
+            <div className="border-b border-[#d97757]/25" />
+            <div className="border-r border-b border-[#d97757]/25" />
+            <div className="border-r border-b border-[#d97757]/25" />
             <div />
           </div>
         )}
@@ -308,7 +308,7 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
               exit={{ scale: 2, opacity: 0 }}
               className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-30 pointer-events-none"
             >
-              <span className="text-8xl font-black text-emerald-400 font-heading drop-shadow-[0_0_20px_#10b981]">
+              <span className="text-8xl font-black text-[#f28b66] font-heading drop-shadow-[0_0_25px_rgba(217,119,87,0.8)]">
                 {countdown}
               </span>
             </motion.div>
@@ -318,14 +318,14 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
         {/* AI SCANNING LASER EFFECT (ROBLOX STYLE) */}
         <AnimatePresence>
           {isAnalyzing && (
-            <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[2px] flex flex-col items-center justify-center z-20 overflow-hidden">
+            <div className="absolute inset-0 bg-[#24140d]/50 backdrop-blur-[2px] flex flex-col items-center justify-center z-20 overflow-hidden">
               <motion.div
                 animate={{ y: ['-100%', '300%'] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                className="w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_15px_#10b981]"
+                className="w-full h-1 bg-gradient-to-r from-transparent via-[#d97757] to-transparent shadow-[0_0_18px_#d97757]"
               />
-              <div className="px-4 py-2 rounded-full bg-slate-900/90 border border-emerald-400/40 text-emerald-300 text-xs font-bold flex items-center gap-2 shadow-2xl">
-                <Bot className="w-4 h-4 animate-spin text-emerald-400" />
+              <div className="px-4 py-2 rounded-full bg-stone-900/95 border border-[#d97757]/50 text-[#fed7aa] text-xs font-bold flex items-center gap-2 shadow-2xl">
+                <Bot className="w-4 h-4 animate-spin text-[#d97757]" />
                 IA Detector Biomagnético Roblox Scan v2.4...
               </div>
             </div>
@@ -337,23 +337,23 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
           <button
             type="button"
             onClick={() => setShowRuleOfThirds(!showRuleOfThirds)}
-            className={`absolute top-4 left-4 z-20 px-2.5 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition flex items-center gap-1.5 ${
+            className={`absolute top-3 left-3 sm:top-4 sm:left-4 z-20 px-2.5 py-1.5 rounded-lg text-xs font-medium backdrop-blur-md border transition flex items-center gap-1.5 ${
               showRuleOfThirds
-                ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
-                : 'bg-black/40 border-white/20 text-slate-300 hover:text-white'
+                ? 'bg-[#d97757]/20 border-[#d97757] text-[#fed7aa]'
+                : 'bg-black/50 border-white/20 text-stone-300 hover:text-white'
             }`}
           >
             <Grid3X3 className="w-3.5 h-3.5" />
-            {showRuleOfThirds ? 'Guía de Tercios activa' : 'Activar Tercios'}
+            {showRuleOfThirds ? 'Guía de Tercios' : 'Activar Tercios'}
           </button>
         )}
       </div>
 
       {/* FILTER PALETTE */}
       <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <Sliders className="w-3.5 h-3.5 text-emerald-400" />
-          Filtros de Tono Cinematográfico
+        <label className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-2">
+          <Sliders className="w-3.5 h-3.5 text-[#d97757]" />
+          Filtros de Tono
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {FILTERS.map((f) => (
@@ -361,17 +361,17 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
               key={f.id}
               type="button"
               onClick={() => setSelectedFilter(f.id)}
-              className={`p-2.5 rounded-xl border text-left transition-all ${
+              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                 selectedFilter === f.id
-                  ? 'border-emerald-400 bg-emerald-950/40 text-white ring-1 ring-emerald-400/50'
-                  : 'border-slate-800 bg-slate-900/40 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                  ? 'border-[#d97757] bg-[#291811]/70 text-white ring-1 ring-[#d97757]/60'
+                  : 'border-stone-800 bg-stone-900/50 text-stone-400 hover:border-stone-700 hover:text-stone-200'
               }`}
             >
               <div className="flex items-center gap-2 mb-1">
                 <div className={`w-3 h-3 rounded-full bg-gradient-to-tr ${f.colorClass}`} />
                 <span className="text-xs font-bold">{f.label}</span>
               </div>
-              <p className="text-[10px] text-slate-400 leading-tight">{f.desc}</p>
+              <p className="text-[10px] text-stone-400 leading-tight">{f.desc}</p>
             </button>
           ))}
         </div>
@@ -379,13 +379,13 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
 
       {/* SHUTTER / CAPTURE BUTTON */}
       {!data.avatarUrl && (
-        <div className="flex justify-center pt-2">
+        <div className="flex justify-center pt-1">
           <motion.button
             type="button"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.96 }}
             onClick={startCountdown}
-            className="px-8 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-slate-950 font-extrabold text-sm flex items-center gap-2.5 shadow-[0_10px_30px_rgba(16,185,129,0.4)] cursor-pointer"
+            className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-[#d97757] via-[#ea580c] to-[#f97316] text-white font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-[0_10px_30px_rgba(217,119,87,0.45)] cursor-pointer"
           >
             <Camera className="w-5 h-5" />
             Tomar Foto Ahora (3s)
@@ -398,50 +398,50 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/70 to-slate-900 border border-emerald-400/50 shadow-[0_0_30px_rgba(16,185,129,0.2)] space-y-3"
+          className="p-4 rounded-2xl bg-gradient-to-r from-[#291811]/85 to-stone-900 border border-[#d97757]/50 shadow-[0_0_30px_rgba(217,119,87,0.25)] space-y-3"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+              <div className="p-1.5 rounded-lg bg-[#d97757]/20 text-[#d97757]">
                 <Bot className="w-4 h-4" />
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#f28b66]">
                 IA Roblox-Style Age Detector: Aprobado
               </span>
             </div>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono text-xs font-bold">
+            <span className="px-2.5 py-0.5 rounded-full bg-[#d97757]/20 text-[#fed7aa] font-mono text-xs font-bold">
               Edad Estimada: ~{aiVerdict.detectedAge} años
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-lg">
+            <div className="w-10 h-10 rounded-full bg-[#d97757] text-white flex items-center justify-center font-black text-lg shadow-[0_0_15px_rgba(217,119,87,0.5)]">
               ✨
             </div>
             <div>
               <p className="text-base font-bold text-white">¡Te ves genial!</p>
-              <p className="text-xs text-slate-300">{aiVerdict.message}</p>
+              <p className="text-xs text-stone-300">{aiVerdict.message}</p>
             </div>
           </div>
         </motion.div>
       )}
 
       {/* TIPS DE EXPERTO PARA SALIR BIEN */}
-      <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 space-y-3">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+      <div className="p-4 rounded-2xl bg-stone-900/50 border border-stone-800 space-y-3">
+        <h4 className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-2">
+          <Sparkles className="w-3.5 h-3.5 text-[#d97757]" />
           Consejos del Algoritmo para lucir auténtico:
         </h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {PHOTO_TIPS.map((tip, idx) => {
             const Icon = tip.icon;
             return (
-              <div key={idx} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 flex flex-col gap-1.5">
-                <div className="flex items-center gap-2 text-emerald-400">
+              <div key={idx} className="p-3 rounded-xl bg-stone-950/70 border border-stone-800/80 flex flex-col gap-1.5">
+                <div className="flex items-center gap-2 text-[#d97757]">
                   <Icon className="w-4 h-4" />
-                  <span className="text-xs font-bold text-slate-200">{tip.title}</span>
+                  <span className="text-xs font-bold text-stone-200">{tip.title}</span>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-relaxed">{tip.text}</p>
+                <p className="text-[11px] text-stone-400 leading-relaxed">{tip.text}</p>
               </div>
             );
           })}
@@ -449,11 +449,11 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
       </div>
 
       {/* NAVIGATION BUTTONS */}
-      <div className="flex items-center gap-3 pt-4">
+      <div className="flex items-center gap-3 pt-3">
         <button
           type="button"
           onClick={onBack}
-          className="px-5 py-3.5 rounded-xl border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 text-sm font-semibold transition"
+          className="px-5 py-3.5 rounded-xl border border-stone-700 bg-stone-900/60 hover:bg-stone-800 text-stone-300 text-sm font-semibold transition cursor-pointer"
         >
           Atrás
         </button>
@@ -466,8 +466,8 @@ export const PhaseTwoCamera: React.FC<PhaseTwoProps> = ({ data, updateData, onNe
           onClick={onNext}
           className={`flex-1 py-3.5 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
             data.avatarUrl && !isAnalyzing
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.5)] cursor-pointer'
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+              ? 'bg-gradient-to-r from-[#d97757] via-[#ea580c] to-[#f97316] text-white shadow-[0_10px_25px_-5px_rgba(217,119,87,0.5)] cursor-pointer'
+              : 'bg-stone-800 text-stone-500 cursor-not-allowed border border-stone-700/50'
           }`}
         >
           <span>Avanzar a la Fase 3</span>

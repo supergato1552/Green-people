@@ -4,11 +4,9 @@ import {
   User, 
   AtSign, 
   Calendar, 
-  ShieldCheck, 
   Sparkles, 
   Eye, 
   CheckCircle2, 
-  AlertCircle,
   HelpCircle,
   HeartHandshake
 } from 'lucide-react';
@@ -31,7 +29,6 @@ const GENDER_OPTIONS: { id: GenderOption; label: string; icon: string; desc: str
 
 export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, onNext }) => {
   const [showTooltip, setShowTooltip] = useState(false);
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   const isComplete = 
     data.gender !== '' && 
@@ -40,13 +37,13 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
     typeof data.realAge === 'number' && data.realAge >= 13 && data.realAge <= 110 &&
     data.agreedHonesty;
 
-  // Sound-like micro-satisfaction trigger (haptic visual feedback)
+  // Sound-like micro-satisfaction trigger with Claude orange confetti
   const triggerLittleCelebration = () => {
     confetti({
-      particleCount: 25,
+      particleCount: 28,
       spread: 60,
       origin: { y: 0.8 },
-      colors: ['#10b981', '#34d399', '#6ee7b7']
+      colors: ['#d97757', '#ea580c', '#fb923c', '#fdba74', '#f59e0b']
     });
   };
 
@@ -68,54 +65,54 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.4 }}
-      className="space-y-8"
+      className="space-y-6 sm:space-y-8"
     >
       {/* Header with psychology note */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-semibold uppercase tracking-wider">
-          <HeartHandshake className="w-3.5 h-3.5" />
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#291811]/80 border border-[#d97757]/30 text-[#f28b66] text-xs font-semibold uppercase tracking-wider">
+          <HeartHandshake className="w-3.5 h-3.5 text-[#d97757]" />
           Fase 1: Identidad & Autenticidad
         </div>
-        <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Aquí la gente viene a ser <span className="text-emerald-400 underline decoration-emerald-500/40 underline-offset-4">real</span>
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">
+          Aquí la gente viene a ser <span className="text-[#d97757] underline decoration-[#d97757]/40 underline-offset-4">real</span>
         </h2>
-        <p className="text-sm text-slate-400 max-w-md mx-auto">
+        <p className="text-xs sm:text-sm text-stone-400 max-w-md mx-auto leading-relaxed">
           Sin filtros de apariencia falsa. Construyamos una amistad honesta desde el primer clic.
         </p>
       </div>
 
       {/* 1. GENDER SELECTION */}
       <div className="space-y-3">
-        <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+        <label className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center justify-between">
           <span>1. ¿Cómo te identificas?</span>
           {data.gender && (
-            <span className="text-emerald-400 font-medium normal-case flex items-center gap-1 text-[11px]">
+            <span className="text-[#d97757] font-semibold normal-case flex items-center gap-1 text-[11px]">
               <CheckCircle2 className="w-3.5 h-3.5" /> Seleccionado
             </span>
           )}
         </label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-2.5">
           {GENDER_OPTIONS.map((g) => {
             const isSelected = data.gender === g.id;
             return (
               <motion.button
                 key={g.id}
                 type="button"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => handleGenderSelect(g.id)}
-                className={`relative p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-200 border ${
+                className={`relative p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all duration-200 border cursor-pointer ${
                   isSelected
-                    ? 'bg-gradient-to-b from-emerald-600/30 to-emerald-950/80 border-emerald-400 text-emerald-100 shadow-[0_0_20px_rgba(16,185,129,0.3)] ring-1 ring-emerald-400/50'
-                    : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                    ? 'bg-gradient-to-b from-[#d97757]/30 to-[#24140d]/90 border-[#d97757] text-[#fed7aa] shadow-[0_0_22px_rgba(217,119,87,0.35)] ring-1 ring-[#d97757]/60'
+                    : 'bg-stone-900/50 border-stone-800 text-stone-400 hover:border-stone-700 hover:text-stone-200'
                 }`}
               >
                 <span className="text-2xl mb-1.5">{g.icon}</span>
-                <span className="text-sm font-semibold">{g.label}</span>
+                <span className="text-xs sm:text-sm font-semibold">{g.label}</span>
                 {isSelected && (
                   <motion.div 
                     layoutId="gender-glow"
-                    className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_8px_#10b981]"
+                    className="absolute -top-1 -right-1 w-3 h-3 bg-[#d97757] rounded-full shadow-[0_0_8px_#d97757]"
                   />
                 )}
               </motion.button>
@@ -127,12 +124,12 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
       {/* 2. REAL NAME + PRIVACY NOTICE */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <User className="w-3.5 h-3.5 text-emerald-400" />
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-2">
+            <User className="w-3.5 h-3.5 text-[#d97757]" />
             2. Tu Nombre Real
           </label>
           {data.realName.trim().length >= 2 && (
-            <span className="text-emerald-400 text-[11px] font-medium flex items-center gap-1">
+            <span className="text-[#d97757] text-[11px] font-semibold flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" /> Válido
             </span>
           )}
@@ -143,17 +140,16 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
             type="text"
             value={data.realName}
             onChange={(e) => updateData({ realName: e.target.value })}
-            onBlur={() => setTouched(prev => ({ ...prev, realName: true }))}
             placeholder="Ej. Sofía Martínez o Carlos Ruiz"
-            className="w-full px-4 py-3.5 rounded-xl bg-slate-900/60 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+            className="w-full px-4 py-3.5 rounded-xl bg-stone-950/70 border border-stone-800 text-white placeholder-stone-500 text-base sm:text-sm focus:outline-none focus:border-[#d97757] focus:ring-2 focus:ring-[#d97757]/20 transition-all"
           />
         </div>
 
         {/* Psychological Trust Banner */}
-        <div className="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/20 flex items-start gap-2.5">
-          <Eye className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-          <p className="text-xs text-emerald-300/90 leading-relaxed">
-            <strong className="text-emerald-200 font-semibold">Tú tienes el control total:</strong> Más adelante podrás decidir exactamente quién puede ver tu nombre real (solo amigos cercanos, todos o nadie).
+        <div className="p-3 rounded-xl bg-[#23150e]/60 border border-[#d97757]/20 flex items-start gap-2.5">
+          <Eye className="w-4 h-4 text-[#d97757] mt-0.5 shrink-0" />
+          <p className="text-xs text-stone-300/90 leading-relaxed">
+            <strong className="text-[#f28b66] font-semibold">Tú tienes el control total:</strong> Más adelante podrás decidir exactamente quién puede ver tu nombre real (solo amigos cercanos, todos o nadie).
           </p>
         </div>
       </div>
@@ -161,28 +157,28 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
       {/* 3. USERNAME / ALIAS */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <AtSign className="w-3.5 h-3.5 text-emerald-400" />
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-2">
+            <AtSign className="w-3.5 h-3.5 text-[#d97757]" />
             3. Nombre de Usuario (Apodo o Alias)
           </label>
           {data.username.trim().length >= 3 && (
-            <span className="text-emerald-400 text-[11px] font-medium flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> @{data.username.toLowerCase().replace(/\s+/g, '')} está genial
+            <span className="text-[#d97757] text-[11px] font-semibold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> @{data.username.toLowerCase().replace(/\s+/g, '')} listo
             </span>
           )}
         </div>
 
         <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">@</span>
+          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-stone-500 font-bold text-sm">@</span>
           <input
             type="text"
             value={data.username}
             onChange={(e) => updateData({ username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
-            placeholder="aventurero_verde, panda99, etc."
-            className="w-full pl-9 pr-4 py-3.5 rounded-xl bg-slate-900/60 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+            placeholder="aventurero, fenix99, etc."
+            className="w-full pl-9 pr-4 py-3.5 rounded-xl bg-stone-950/70 border border-stone-800 text-white placeholder-stone-500 text-base sm:text-sm focus:outline-none focus:border-[#d97757] focus:ring-2 focus:ring-[#d97757]/20 transition-all"
           />
         </div>
-        <p className="text-[11px] text-slate-400">
+        <p className="text-[11px] text-stone-400">
           Este será tu identificador público en la comunidad. Usa tu apodo favorito o el que más te identifique.
         </p>
       </div>
@@ -190,8 +186,8 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
       {/* 4. REAL AGE */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-            <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+          <label className="text-xs font-bold uppercase tracking-wider text-stone-300 flex items-center gap-2">
+            <Calendar className="w-3.5 h-3.5 text-[#d97757]" />
             4. Tu Edad Real
           </label>
           <div className="relative">
@@ -200,7 +196,7 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
               onMouseEnter={() => setShowTooltip(true)}
               onMouseLeave={() => setShowTooltip(false)}
               onClick={() => setShowTooltip(!showTooltip)}
-              className="text-slate-400 hover:text-emerald-400 transition text-[11px] flex items-center gap-1"
+              className="text-stone-400 hover:text-[#d97757] transition text-[11px] flex items-center gap-1"
             >
               <HelpCircle className="w-3.5 h-3.5" /> ¿Por qué la pedimos?
             </button>
@@ -210,9 +206,9 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 5 }}
-                  className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-slate-900 border border-emerald-500/30 rounded-xl text-xs text-slate-300 shadow-2xl z-20 pointer-events-none"
+                  className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-stone-900 border border-[#d97757]/30 rounded-xl text-xs text-stone-300 shadow-2xl z-20 pointer-events-none"
                 >
-                  Pedimos tu edad real para conectar con gente de tus mismos rangos de intereses y seguridad. <strong>Esto no cambiará ni afectará tu experiencia de exploración.</strong>
+                  Pedimos tu edad real para conectar con personas de tus mismos rangos de afinidad y seguridad. <strong>Esto no afectará tu experiencia de exploración.</strong>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -230,10 +226,10 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
               updateData({ realAge: val });
             }}
             placeholder="Ingresa tu edad (ej. 23)"
-            className="w-full px-4 py-3.5 rounded-xl bg-slate-900/60 border border-slate-700/80 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+            className="w-full px-4 py-3.5 rounded-xl bg-stone-950/70 border border-stone-800 text-white placeholder-stone-500 text-base sm:text-sm focus:outline-none focus:border-[#d97757] focus:ring-2 focus:ring-[#d97757]/20 transition-all"
           />
         </div>
-        <p className="text-[11px] text-emerald-400/80 italic">
+        <p className="text-[11px] text-[#f28b66]/90 italic">
           ✨ Tu edad real no afectará la experiencia ni la calidad de lo que descubras aquí.
         </p>
       </div>
@@ -242,17 +238,17 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
       <motion.div 
         whileHover={{ scale: 1.01 }}
         onClick={handleHonestyToggle}
-        className={`p-4 rounded-2xl cursor-pointer border transition-all duration-300 flex items-start gap-3.5 ${
+        className={`p-3.5 sm:p-4 rounded-2xl cursor-pointer border transition-all duration-300 flex items-start gap-3.5 ${
           data.agreedHonesty 
-            ? 'bg-emerald-950/40 border-emerald-400/60 shadow-[0_0_25px_rgba(16,185,129,0.15)]' 
-            : 'bg-slate-900/50 border-slate-700/80 hover:border-slate-600'
+            ? 'bg-[#29170e]/75 border-[#d97757]/60 shadow-[0_0_25px_rgba(217,119,87,0.2)]' 
+            : 'bg-stone-900/50 border-stone-800 hover:border-stone-700'
         }`}
       >
         <div className="mt-0.5">
           <div className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all ${
             data.agreedHonesty 
-              ? 'bg-emerald-500 border-emerald-400 text-black shadow-sm' 
-              : 'border-slate-500 bg-slate-800'
+              ? 'bg-[#d97757] border-[#d97757] text-white shadow-sm' 
+              : 'border-stone-600 bg-stone-800'
           }`}>
             {data.agreedHonesty && (
               <motion.div
@@ -260,17 +256,17 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               >
-                <CheckCircle2 className="w-4 h-4 text-emerald-950 stroke-[3]" />
+                <CheckCircle2 className="w-4 h-4 text-white stroke-[3]" />
               </motion.div>
             )}
           </div>
         </div>
 
         <div className="flex-1 text-xs">
-          <p className="font-semibold text-slate-200 select-none">
+          <p className="font-semibold text-stone-200 select-none">
             Promesa de Honestidad Green People 🤝
           </p>
-          <p className="text-slate-400 mt-1 select-none leading-relaxed">
+          <p className="text-stone-400 mt-1 select-none leading-relaxed">
             Prometo bajo palabra que toda esta información es verídica y real. Entiendo que en esta red buscamos personas auténticas para crear amistades sinceras y sanas.
           </p>
         </div>
@@ -285,8 +281,8 @@ export const PhaseOneIdentity: React.FC<PhaseOneProps> = ({ data, updateData, on
         onClick={onNext}
         className={`w-full py-4 rounded-xl font-bold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
           isComplete
-            ? 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 text-slate-950 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.5)] cursor-pointer'
-            : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700/50'
+            ? 'bg-gradient-to-r from-[#d97757] via-[#ea580c] to-[#f97316] text-white shadow-[0_10px_25px_-5px_rgba(217,119,87,0.5)] cursor-pointer'
+            : 'bg-stone-800 text-stone-500 cursor-not-allowed border border-stone-700/50'
         }`}
       >
         <Sparkles className="w-4 h-4" />
